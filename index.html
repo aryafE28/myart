@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>العالم الفني التفاعلي</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      direction: rtl;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #000, #222);
+      color: white;
+      overflow: hidden;
+    }
+
+    .scene {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+    }
+
+    .portal {
+      background: radial-gradient(circle, #444 0%, #000 80%);
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      box-shadow: 0 0 50px 20px #00f3ff77;
+      animation: rotate 10s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+
+    .options, .tools, .gallery, .music-control {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 25px;
+      background: #00f3ff;
+      border: none;
+      border-radius: 8px;
+      color: black;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+      background-color: #00c3cc;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .gallery img {
+      width: 150px;
+      height: 150px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid #00f3ff;
+      cursor: pointer;
+    }
+
+    canvas {
+      border: 2px dashed #00f3ff;
+      border-radius: 10px;
+    }
+
+    #customPopup {
+      position: fixed;
+      top: 20%;
+      right: 50%;
+      transform: translateX(50%);
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00f3ff;
+      z-index: 100;
+    }
+
+    #customPopup label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    #customPopup input,
+    #customPopup select {
+      margin-top: 5px;
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scene" id="welcomeScreen">
+    <div class="portal"></div>
+    <div class="options">
+      <button class="btn" onclick="startExperience()">ابدأ التجربة</button>
+      <button class="btn" onclick="customizeWorld()">خصص عالمك</button>
+    </div>
+  </div>
+
+  <div id="customPopup" class="hidden">
+    <h3>🎛 تخصيص العالم</h3>
+    <label>لون الخلفية:
+      <input type="color" id="bgColorPicker" value="#000000">
+    </label>
+    <label>لون الفرشاة:
+      <input type="color" id="brushColorPicker" value="#ffffff">
+    </label>
+    <label>اختر الموسيقى:
+      <select id="musicSelect">
+        <option value="1">هادئة</option>
+        <option value="2">متحمسة</option>
+      </select>
+    </label>
+    <br><br>
+    <button class="btn" onclick="applyCustomization()">تطبيق</button>
+    <button class="btn" onclick="closeCustomization()">إغلاق</button>
+  </div>
+
+  <div class="scene hidden" id="mainApp">
+    <h2>🎨 معرضك الفني</h2>
+
+    <div class="gallery" id="gallery">
+      <img src="https://picsum.photos/id/1015/200/200" onclick="selectArtwork(this)">
+      <img src="https://picsum.photos/id/1025/200/200" onclick="selectArtwork(this)">
+      <img src="https://picsum.photos/id/1035/200/200" onclick="selectArtwork(this)">
+    </div>
+
+    <h3>🖌 عدل على عملك الفني</h3>
+    <canvas id="canvas" width="300" height="300"></canvas>
+
+    <div class="tools">
+      <button class="btn" onclick="draw('brush')">فرشاة</button>
+      <button class="btn" onclick="draw('color')">تلوين</button>
+      <button class="btn" onclick="clearCanvas()">مسح</button>
+    </div>
+
+    <div class="music-control">
+      <button class="btn" onclick="changeMusic()">🎶 غيّر الموسيقى</button>
+      <button class="btn" onclick="saveArtwork()">💾 احفظ العمل</button>
+    </div>
+  </div>
+
+  <audio id="music" autoplay loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    let currentTool = 'brush';
+    let brushColor = '#ffffff';
+
+    function startExperience() {
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+    }
+
+    function customizeWorld() {
+      document.getElementById('customPopup').classList.remove('hidden');
+    }
+
+    function closeCustomization() {
+      document.getElementById('customPopup').classList.add('hidden');
+    }
+
+    function applyCustomization() {
+      // تغيير الخلفية
+      const bgColor = document.getElementById('bgColorPicker').value;
+      document.body.style.background = bgColor;
+
+      // تغيير لون الفرشاة
+      brushColor = document.getElementById('brushColorPicker').value;
+
+      // تغيير الموسيقى
+      const selectedMusic = document.getElementById('musicSelect').value;
+      const audio = document.getElementById('music');
+      if (selectedMusic === "1") {
+        audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+      } else {
+        audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
+      }
+      audio.play();
+
+      closeCustomization();
+    }
+
+    function selectArtwork(img) {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = function () {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      };
+      image.src = img.src;
+    }
+
+    function draw(tool) {
+      currentTool = tool;
+    }
+
+    function clearCanvas() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mousemove', (e) => {
+      if (!drawing) return;
+      const x = e.offsetX;
+      const y = e.offsetY;
+      ctx.fillStyle = brushColor;
+      if (currentTool === 'brush') {
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (currentTool === 'color') {
+        ctx.fillRect(x, y, 10, 10);
+      }
+    });
+
+    function changeMusic() {
+      const audio = document.getElementById('music');
+      audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
+      audio.play();
+    }
+
+    function saveArtwork() {
+      const canvas = document.getElementById('canvas');
+      const link = document.createElement('a');
+      link.download = 'my-artwork.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
